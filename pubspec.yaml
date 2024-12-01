@@ -14,13 +14,28 @@ dependencies:
   go_router_builder: ^2.7.1
   flutter_gen_runner: ^5.8.0
   flutter_dotenv: ^5.2.1
+  build_runner: ^2.4.9
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
 
+flutter_gen:
+  colors:
+    inputs:
+      - assets/color/colors.xml
+  assets:
+    exclude:
+      - .env
+
 
 flutter:
 
   uses-material-design: true
+
+  assets:
+    - .env
+    - assets/images/
+    - assets/images/icons/
+    - assets/sounds/
