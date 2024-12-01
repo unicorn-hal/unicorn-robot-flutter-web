@@ -38,4 +38,20 @@ flutter:
     - .env
     - assets/images/
     - assets/images/icons/
-    - assets/sounds/
+
+
+fonts:
+    - family: Noto_Sans_JP
+      fonts:
+        - asset: assets/fonts/Noto_Sans_JP/NotoSansJP-Thin.otf
+          weight: 100
+        - asset: assets/fonts/Noto_Sans_JP/NotoSansJP-Light.otf
+          weight: 300
+        - asset: assets/fonts/Noto_Sans_JP/NotoSansJP-Regular.otf
+          weight: 400
+        - asset: assets/fonts/Noto_Sans_JP/NotoSansJP-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Noto_Sans_JP/NotoSansJP-Bold.otf
+          weight: 700
+        - asset: assets/fonts/Noto_Sans_JP/NotoSansJP-Black.otf
+          weight: 900
