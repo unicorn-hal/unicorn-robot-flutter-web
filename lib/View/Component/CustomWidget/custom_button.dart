@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unicorn_robot_flutter_web/%20View/Component/CustomWidget/custom_text.dart';
+import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_text.dart';
 import 'package:unicorn_robot_flutter_web/gen/colors.gen.dart';
 
 class CustomButton extends StatelessWidget {
