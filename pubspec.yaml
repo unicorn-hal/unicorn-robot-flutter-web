@@ -18,6 +18,7 @@ dependencies:
   fluttertoast: ^8.2.8
   http: ^1.2.2
   firebase_auth: ^5.2.0
+  riverpod: ^2.6.1
 
 dev_dependencies:
   flutter_test:
