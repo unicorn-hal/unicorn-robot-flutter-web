@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
 
 class FirebaseAuthenticationService {
   late FirebaseAuth _instance;
@@ -8,19 +7,22 @@ class FirebaseAuthenticationService {
     _instance = FirebaseAuth.instance;
   }
 
-  /// 匿名ログインを行う
-  Future<User?> signInAnonymously() async {
+  Future<void> signInWithEmailAndPassword(
+      {required String email, required String password}) async {
     try {
-      UserCredential userCredential = await _instance.signInAnonymously();
-      return userCredential.user;
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      print("User signed in: ${userCredential.user?.email}");
     } catch (e) {
-      Log.echo('signInAnonymously: $e', symbol: '🔒');
-      return null;
+      print("Sign-in failed: $e");
     }
   }
 
   /// ユーザー情報を取得する
-  User? getUser() {
+  User? getRobot() {
     return _instance.currentUser;
   }
 
