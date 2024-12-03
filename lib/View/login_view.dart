@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:unicorn_robot_flutter_web/Route/router.dart';
+import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_button.dart';
+import 'package:unicorn_robot_flutter_web/gen/assets.gen.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -11,17 +12,30 @@ class LoginView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Login View',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Assets.images.icons.unicorn.image(
+              width: 350,
+              height: 350,
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                const HomeRoute().go(context);
-              },
-              child: const Text('GO TO HOME'),
+            SizedBox(
+              width: 250,
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                ),
+              ),
             ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 250,
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+            CustomButton(text: 'LOGIN', onTap: () {}),
+            const SizedBox(height: 150),
           ],
         ),
       ),
