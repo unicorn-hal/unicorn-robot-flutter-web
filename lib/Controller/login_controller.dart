@@ -1,11 +1,13 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:unicorn_robot_flutter_web/Route/router.dart';
+import 'package:unicorn_robot_flutter_web/Service/Firebase/Authentication/authentication_service.dart';
 import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
 
 class LoginController {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  final FirebaseAuthenticationService _firebaseAuthenticationService =
+      FirebaseAuthenticationService();
   LoginController();
 
   Future<void> login(BuildContext context) async {
@@ -14,7 +16,7 @@ class LoginController {
       final password = passwordController.text.trim();
 
       // FirebaseAuth を使ったサインイン
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await _firebaseAuthenticationService.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
