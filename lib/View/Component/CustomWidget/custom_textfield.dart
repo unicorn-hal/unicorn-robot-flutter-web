@@ -20,7 +20,7 @@ class CustomTextfield extends StatefulWidget {
     this.useSearchButton = false,
     this.buttonOnTap,
     this.onTapOutside,
-    required this.obscureText,
+    this.obscureText = false,
   });
 
   final String hintText;
