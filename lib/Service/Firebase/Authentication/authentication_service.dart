@@ -8,7 +8,7 @@ class FirebaseAuthenticationService {
     _instance = FirebaseAuth.instance;
   }
 
-  Future<void> signInWithEmailAndPassword(
+  Future<bool> signInWithEmailAndPassword(
       {required String email, required String password}) async {
     try {
       UserCredential userCredential =
@@ -17,8 +17,10 @@ class FirebaseAuthenticationService {
         password: password,
       );
       Log.echo('Sign-in: ${userCredential.user!.email}');
+      return true;
     } catch (e) {
       Log.echo('Sign-in error: $e');
+      return false;
     }
   }
 
