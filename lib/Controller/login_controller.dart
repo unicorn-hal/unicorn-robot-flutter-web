@@ -11,29 +11,33 @@ class LoginController {
   LoginController();
 
   Future<void> login(BuildContext context) async {
-    try {
-      final email = emailController.text.trim();
-      final password = passwordController.text.trim();
+    final String email = emailController.text.trim();
+    final String password = passwordController.text.trim();
 
-      // FirebaseAuth を使ったサインイン
-      await _firebaseAuthenticationService.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    // FirebaseAuth を使ったサインイン
+    final bool isSuccess =
+        await _firebaseAuthenticationService.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
+    if (isSuccess) {
       // サインイン成功時
       Log.echo('サインイン成功： $email');
-      // ignore: use_build_context_synchronously
-      const HomeRoute().go(context);
-    } catch (e) {
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("メールアドレスまたはパスワードが間違っています"),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      if (context.mounted) {
+        const HomeRoute().go(context); // 画面遷移
+      }
+    } else {
+      // サインイン失敗時
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("メールアドレスまたはパスワードが間違っています"),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 }
