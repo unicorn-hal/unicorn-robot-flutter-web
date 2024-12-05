@@ -1,17 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:unicorn_robot_flutter_web/Controller/Core/controller_core.dart';
 import 'package:unicorn_robot_flutter_web/Route/router.dart';
 import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
 
-class HomeController {
+class HomeController extends ControllerCore {
   BuildContext context;
   HomeController(
     this.context,
   ) {
     Log.echo('HomeController');
-    initialize();
   }
 
+  @override
   initialize() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkAuthState();
