@@ -1,9 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:unicorn_robot_flutter_web/Route/router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unicorn_robot_flutter_web/firebase_options.dart';
 
 void main() async {
+  await dotenv.load();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('ja');
