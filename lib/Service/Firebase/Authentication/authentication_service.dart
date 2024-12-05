@@ -8,19 +8,24 @@ class FirebaseAuthenticationService {
     _instance = FirebaseAuth.instance;
   }
 
-  /// 匿名ログインを行う
-  Future<User?> signInAnonymously() async {
+  Future<bool> signInWithEmailAndPassword(
+      {required String email, required String password}) async {
     try {
-      UserCredential userCredential = await _instance.signInAnonymously();
-      return userCredential.user;
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      Log.echo('Sign-in: ${userCredential.user!.email}');
+      return true;
     } catch (e) {
-      Log.echo('signInAnonymously: $e', symbol: '🔒');
-      return null;
+      Log.echo('Sign-in error: $e');
+      return false;
     }
   }
 
   /// ユーザー情報を取得する
-  User? getUser() {
+  User? getRobot() {
     return _instance.currentUser;
   }
 
@@ -32,5 +37,9 @@ class FirebaseAuthenticationService {
   /// IDトークンを取得する
   Future<String?> getIdToken() async {
     return _instance.currentUser?.getIdToken();
+  }
+
+  Future<void> signOut() async {
+    await _instance.signOut();
   }
 }

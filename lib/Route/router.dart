@@ -27,7 +27,7 @@ class RootRoute extends GoRouteData {
   const RootRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) => const LoginView();
+  Widget build(BuildContext context, GoRouterState state) => const HomeView();
 }
 
 @TypedGoRoute<LoginRoute>(
