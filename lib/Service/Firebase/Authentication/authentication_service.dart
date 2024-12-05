@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
 
 class FirebaseAuthenticationService {
   late FirebaseAuth _instance;
@@ -15,9 +16,9 @@ class FirebaseAuthenticationService {
         email: email,
         password: password,
       );
-      print("User signed in: ${userCredential.user?.email}");
+      Log.echo('Sign-in: ${userCredential.user!.email}');
     } catch (e) {
-      print("Sign-in failed: $e");
+      Log.echo('Sign-in error: $e');
     }
   }
 
