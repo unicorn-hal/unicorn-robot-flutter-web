@@ -38,4 +38,8 @@ class FirebaseAuthenticationService {
   Future<String?> getIdToken() async {
     return _instance.currentUser?.getIdToken();
   }
+
+  Future<void> signOut() async {
+    await _instance.signOut();
+  }
 }
