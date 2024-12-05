@@ -20,6 +20,7 @@ class CustomTextfield extends StatefulWidget {
     this.useSearchButton = false,
     this.buttonOnTap,
     this.onTapOutside,
+    required this.obscureText,
   });
 
   final String hintText;
@@ -36,6 +37,7 @@ class CustomTextfield extends StatefulWidget {
   final bool useSearchButton;
   final Function? buttonOnTap;
   final Function(PointerDownEvent)? onTapOutside;
+  final bool obscureText;
 
   @override
   State<CustomTextfield> createState() => _CustomTextfieldState();
@@ -50,6 +52,7 @@ class _CustomTextfieldState extends State<CustomTextfield> {
         SizedBox(
           width: widget.useSearchButton ? widget.width * 0.85 : widget.width,
           child: TextFormField(
+            obscureText: widget.obscureText,
             keyboardType: widget.keyboardType,
             inputFormatters: widget.inputFormatters,
             controller: widget.controller,
