@@ -10,6 +10,7 @@ class LoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     LoginController controller = LoginController();
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -22,20 +23,29 @@ class LoginView extends StatelessWidget {
             SizedBox(
               width: 300,
               child: CustomTextfield(
-                  hintText: 'Email',
-                  controller: controller.emailController,
-                  width: 300),
+                maxLines: 1,
+                hintText: 'Email',
+                controller: controller.emailController,
+                width: 300,
+              ),
             ),
             const SizedBox(height: 20),
             SizedBox(
               width: 300,
               child: CustomTextfield(
-                  hintText: 'Password',
-                  controller: controller.passwordController,
-                  width: 300),
+                maxLines: 1,
+                hintText: 'Password',
+                controller: controller.passwordController,
+                width: 300,
+              ),
             ),
             const SizedBox(height: 40),
-            CustomButton(text: 'LOGIN', onTap: () {}),
+            CustomButton(
+              text: 'ログイン',
+              onTap: () async {
+                await controller.login(context);
+              },
+            ),
             const SizedBox(height: 150),
           ],
         ),
