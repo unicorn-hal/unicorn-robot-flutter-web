@@ -27,7 +27,6 @@ class LoginView extends StatelessWidget {
                 hintText: 'Email',
                 controller: controller.emailController,
                 width: 300,
-                obscureText: false,
               ),
             ),
             const SizedBox(height: 20),
