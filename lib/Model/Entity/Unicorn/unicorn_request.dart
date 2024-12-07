@@ -1,18 +1,18 @@
-class UnicornRequest {
+class UnicornLocation {
   final String userId;
-  final double robotLatitute;
+  final double robotLatitude;
   final double robotLongitude;
 
-  UnicornRequest({
+  UnicornLocation({
     required this.userId,
-    required this.robotLatitute,
+    required this.robotLatitude,
     required this.robotLongitude,
   });
 
-  factory UnicornRequest.fromJson(Map<String, dynamic> json) {
-    return UnicornRequest(
+  factory UnicornLocation.fromJson(Map<String, dynamic> json) {
+    return UnicornLocation(
       userId: json['userID'],
-      robotLatitute: json['robotLatitute'],
+      robotLatitude: json['robotLatitude'],
       robotLongitude: json['robotLongitude'],
     );
   }
@@ -20,7 +20,7 @@ class UnicornRequest {
   Map<String, dynamic> toJson() {
     return {
       'userID': userId,
-      'robotLatitute': robotLatitute,
+      'robotLatitude': robotLatitude,
       'robotLongitude': robotLongitude,
     };
   }

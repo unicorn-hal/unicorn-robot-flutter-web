@@ -1,14 +1,14 @@
-class UnicornResponse {
+class UnicornSupport {
   final String robotSupportId;
   final String userId;
 
-  UnicornResponse({
+  UnicornSupport({
     required this.robotSupportId,
     required this.userId,
   });
 
-  factory UnicornResponse.fromJson(Map<String, dynamic> json) {
-    return UnicornResponse(
+  factory UnicornSupport.fromJson(Map<String, dynamic> json) {
+    return UnicornSupport(
       robotSupportId: json['robotSupportID'],
       userId: json['userID'],
     );
