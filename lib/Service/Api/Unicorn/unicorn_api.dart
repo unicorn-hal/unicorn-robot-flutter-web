@@ -11,14 +11,14 @@ class UnicornApi extends ApiCore with Endpoint {
   /// 移動通知
   /// [body] UnicornRequest
   /// [robotId] ロボットID
-  Future<int> postMovingUnicorn(
-      {required UnicornRequest body, required String robotId}) async {
+  Future<UnicornLocation?> postMovingUnicorn(
+      {required UnicornLocation body, required String robotId}) async {
     try {
       useParameter(parameter: '/$robotId/moving');
       final ApiResponse response = await post(body.toJson());
-      return response.statusCode;
+      return UnicornLocation.fromJson(response.data);
     } catch (e) {
-      return 500;
+      return null;
     }
   }
 
@@ -26,14 +26,14 @@ class UnicornApi extends ApiCore with Endpoint {
   /// 到着通知
   /// [body] UnicornRequest
   /// [robotId] ロボットID
-  Future<int> postArrivalUnicorn(
-      {required UnicornRequest body, required String robotId}) async {
+  Future<UnicornLocation?> postArrivalUnicorn(
+      {required UnicornLocation body, required String robotId}) async {
     try {
       useParameter(parameter: '/$robotId/arrival');
       final ApiResponse response = await post(body.toJson());
-      return response.statusCode;
+      return UnicornLocation.fromJson(response.data);
     } catch (e) {
-      return 500;
+      return null;
     }
   }
 
@@ -41,14 +41,14 @@ class UnicornApi extends ApiCore with Endpoint {
   /// 完了通知
   /// [body] UnicornResponse
   /// [robotId] ロボットID
-  Future<int> postCompleteUnicorn(
-      {required UnicornResponse body, required String robotId}) async {
+  Future<UnicornSupport?> postCompleteUnicorn(
+      {required UnicornSupport body, required String robotId}) async {
     try {
       useParameter(parameter: '/$robotId/complete');
       final ApiResponse response = await post(body.toJson());
-      return response.statusCode;
+      return UnicornSupport.fromJson(response.data);
     } catch (e) {
-      return 500;
+      return null;
     }
   }
 }
