@@ -1,5 +1,3 @@
-import 'package:unicorn_robot_flutter_web/Model/Entity/Robot/robot_request.dart';
-
 class Robot {
   final String robotId;
   final String robotName;
@@ -21,9 +19,5 @@ class Robot {
       'robotID': robotId,
       'robotName': robotName,
     };
-  }
-
-  RobotRequest toRequest() {
-    return RobotRequest.fromJson(toJson());
   }
 }
