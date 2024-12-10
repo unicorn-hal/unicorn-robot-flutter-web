@@ -23,7 +23,9 @@ dependencies:
   flutter_riverpod: ^2.6.1
   intl: ^0.20.0
   firebase_core: ^3.4.0
+  video_player_web: ^2.3.2
   video_player: ^2.9.2
+  
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +49,7 @@ flutter:
     - .env
     - assets/images/
     - assets/images/icons/
+    - assets/videos/
 
 
 fonts:
