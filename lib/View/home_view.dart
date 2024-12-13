@@ -12,11 +12,14 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  late HomeController controller;
   late VideoPlayerController _videoPlayerController;
 
   @override
   void initState() {
     super.initState();
+    controller = HomeController(context);
+
     _videoPlayerController =
         VideoPlayerController.asset(Assets.videos.unicornShort);
     _videoPlayerController.initialize().then((_) {
@@ -36,7 +39,6 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    HomeController controller = HomeController(context);
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
