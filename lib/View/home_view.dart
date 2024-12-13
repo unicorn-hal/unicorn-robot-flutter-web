@@ -59,7 +59,7 @@ class _HomeViewState extends State<HomeView> {
               CustomButton(
                 text: 'ログアウト',
                 onTap: () {
-                  controller.logout();
+                  controller.signOut();
                 },
               ),
             ],
