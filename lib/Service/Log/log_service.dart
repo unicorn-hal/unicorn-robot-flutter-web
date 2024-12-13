@@ -7,9 +7,9 @@ class Log {
   Log._internal();
 
   static void echo(String message, {String symbol = '👑'}) {
-    // if (kDebugMode) {
-    print('$symbol >> $message');
-    // }
+    if (kDebugMode) {
+      print('$symbol >> $message');
+    }
   }
 
   static void toast(String message, {String symbol = '🍞'}) {
