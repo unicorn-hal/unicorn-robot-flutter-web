@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unicorn_robot_flutter_web/Controller/home_controller.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_button.dart';
-import 'package:unicorn_robot_flutter_web/gen/assets.gen.dart';
 import 'package:video_player/video_player.dart';
 
 class HomeView extends StatefulWidget {
@@ -12,41 +11,36 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  late VideoPlayerController _videoPlayerController;
+  late HomeController _controller;
 
   @override
   void initState() {
     super.initState();
-    _videoPlayerController =
-        VideoPlayerController.asset(Assets.videos.unicornShort);
-    _videoPlayerController.initialize().then((_) {
-      // 最初のフレームを描画するため初期化後に更新
-      setState(() {
-        _videoPlayerController.setLooping(true);
-        _videoPlayerController.play();
-      });
+    _controller = HomeController(context);
+    _controller.initializeVideoPlayer(() {
+      setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _videoPlayerController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    HomeController controller = HomeController(context);
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (_videoPlayerController.value.isInitialized)
+              if (_controller.videoPlayerController.value.isInitialized)
                 AspectRatio(
-                  aspectRatio: _videoPlayerController.value.aspectRatio,
-                  child: VideoPlayer(_videoPlayerController),
+                  aspectRatio:
+                      _controller.videoPlayerController.value.aspectRatio,
+                  child: VideoPlayer(_controller.videoPlayerController),
                 )
               else
                 const Text('Initializing video...'), // 初期化中であることを表示
@@ -59,7 +53,7 @@ class _HomeViewState extends State<HomeView> {
               CustomButton(
                 text: 'ログアウト',
                 onTap: () {
-                  controller.logout();
+                  _controller.logout();
                 },
               ),
             ],
