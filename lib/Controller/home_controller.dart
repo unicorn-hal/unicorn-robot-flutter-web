@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
+import 'package:unicorn_robot_flutter_web/Constants/Enum/robot_power_status_enum.dart';
 import 'package:unicorn_robot_flutter_web/Controller/Core/controller_core.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Emergency/WebSocket/emergency_queue.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Robot/robot.dart';
@@ -58,6 +59,8 @@ class HomeController extends ControllerCore {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _checkAuthState();
       await _connectWebSocket();
+      await _robotApi.putRobotPower(
+          robot.robotId, RobotPowerStatusEnum.robotWaiting);
       document.addEventListener('visibilitychange', _handleVisibilityChange);
     });
   }
@@ -83,11 +86,19 @@ class HomeController extends ControllerCore {
   }
 
   /// タブの表示状態を監視
-  void _handleVisibilityChange(Event event) {
-    if (document.hidden ?? false) {
-      Log.echo('hidden');
-    } else {
-      Log.echo('visible');
+  void _handleVisibilityChange(Event event) async {
+    try {
+      RobotPowerStatusEnum status = document.hidden ?? false
+          ? RobotPowerStatusEnum.shutdown
+          : RobotPowerStatusEnum.robotWaiting;
+      Log.echo('VisibilityChange: ${status.value}');
+      final res = await _robotApi.putRobotPower(robot.robotId, status);
+      if (res == null) {
+        throw Exception('Failed to put robot power');
+      }
+      Log.echo('RobotPowerStatus: ${res.robotStatus.value}');
+    } catch (e) {
+      Log.echo('Error: $e');
     }
   }
 
@@ -247,9 +258,11 @@ class HomeController extends ControllerCore {
   }
 
   /// Dispose
-  void dispose() {
+  void dispose() async {
     Log.echo('dispose');
     _wsConnectionStatus.dispose();
     document.removeEventListener('visibilitychange', _handleVisibilityChange);
+    await _robotApi.putRobotPower(
+        robot.robotId, RobotPowerStatusEnum.robotWaiting);
   }
 }
