@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:unicorn_robot_flutter_web/Constants/Enum/robot_power_status_enum.dart';
 import 'package:unicorn_robot_flutter_web/Controller/Core/controller_core.dart';
@@ -42,11 +43,8 @@ class HomeController extends ControllerCore {
   User? user;
   List<HealthCheckup>? healthCheckUpList;
 
-  final double unicornInitialLatitude = 35.681236;
-  final double unicornInitialLongitude = 139.767125;
-
-  late double unicornLatitude;
-  late double unicornLongitude;
+  final LatLng unicornInitialPosition = const LatLng(35.681236, 139.767125);
+  late final ValueNotifier<LatLng> unicornPositionNotifier;
 
   late VideoPlayerController videoPlayerController;
   final BuildContext context;
@@ -60,6 +58,7 @@ class HomeController extends ControllerCore {
 
   @override
   void initialize() {
+    unicornPositionNotifier = ValueNotifier(unicornInitialPosition);
     _wsConnectionStatus.value = false;
 
     _listenWsConnectionStatus((value) {
@@ -215,8 +214,7 @@ class HomeController extends ControllerCore {
       EmergencyQueue emergencyQueue = EmergencyQueue.fromJson(json);
 
       /// Unicornの初期位置
-      unicornLatitude = unicornInitialLatitude;
-      unicornLongitude = unicornInitialLongitude;
+      unicornPositionNotifier.value = unicornInitialPosition;
 
       /// User情報の取得
       await getUser(emergencyQueue.userId);
@@ -224,7 +222,7 @@ class HomeController extends ControllerCore {
 
       _emergencyQueueNotifier.value = emergencyQueue;
 
-      await queueTask();
+      // await queueTask();
     } catch (e) {
       Log.echo('Error: $e');
       _emergencyQueueNotifier.value = null;
@@ -239,39 +237,56 @@ class HomeController extends ControllerCore {
   }
 
   /// EmergencyQueueのタスク消化
-  Future<void> queueTask() async {
-    if (_emergencyQueueNotifier.value == null) {
+  Future<void> queueTask({required List<LatLng> polyline}) async {
+    if (_emergencyQueueNotifier.value == null || polyline.isEmpty) {
       return;
     }
 
-    double userLatitude = _emergencyQueueNotifier.value!.userLatitude;
-    double userLongitude = _emergencyQueueNotifier.value!.userLongitude;
+    int steps = polyline.length >= 10 ? 10 : polyline.length;
+    List<LatLng> thinnedPolyline = [];
+    int interval = steps > 0 ? (polyline.length / steps).floor() : 1;
+    interval = interval > 0 ? interval : 1;
 
-    int steps = 10;
-    double latStep = (userLatitude - unicornLatitude) / steps;
-    double lonStep = (userLongitude - unicornLongitude) / steps;
+    for (int i = 0; i < polyline.length; i += interval) {
+      thinnedPolyline.add(polyline[i]);
+      if (thinnedPolyline.length == steps) {
+        break;
+      }
+    }
 
-    Log.echo('UserLocation: $userLatitude, $userLongitude');
-    Log.echo('UnicornLocation: $unicornLatitude, $unicornLongitude');
-    Log.echo('Step: $latStep, $lonStep');
+    if (thinnedPolyline.length < steps && polyline.isNotEmpty) {
+      thinnedPolyline.add(polyline.last);
+    }
 
-    for (int i = 1; i < steps; i++) {
-      unicornLatitude += latStep;
-      unicornLongitude += lonStep;
+    // 最終到着地点を追加
+    thinnedPolyline.add(LatLng(_emergencyQueueNotifier.value!.userLatitude,
+        _emergencyQueueNotifier.value!.userLongitude));
+
+    // Log thinned points
+    Log.echo('Thinned Polyline Points:');
+    for (LatLng point in thinnedPolyline) {
+      Log.echo('Point: ${point.latitude}, ${point.longitude}');
+    }
+
+    // Move unicorn along thinned polyline
+    for (LatLng point in thinnedPolyline) {
+      unicornPositionNotifier.value = point;
 
       final UnicornLocation step = UnicornLocation(
         userId: _emergencyQueueNotifier.value!.userId,
-        robotLatitude: unicornLatitude,
-        robotLongitude: unicornLongitude,
+        robotLatitude: unicornPositionNotifier.value.latitude,
+        robotLongitude: unicornPositionNotifier.value.longitude,
       );
       await movingUnicorn(step);
       await Future.delayed(const Duration(seconds: 1));
     }
+
+    // Arrival notification
     await arrivalUnicorn(
       UnicornLocation(
         userId: _emergencyQueueNotifier.value!.userId,
-        robotLatitude: userLatitude,
-        robotLongitude: userLongitude,
+        robotLatitude: unicornPositionNotifier.value.latitude,
+        robotLongitude: unicornPositionNotifier.value.longitude,
       ),
     );
     await Future.delayed(const Duration(seconds: 5));
@@ -386,6 +401,7 @@ class HomeController extends ControllerCore {
     Log.echo('dispose');
     videoPlayerController.dispose();
     _wsConnectionStatus.dispose();
+    unicornPositionNotifier.dispose();
     html.document
         .removeEventListener('visibilitychange', _handleVisibilityChange);
     await _robotApi.putRobotPower(

@@ -5,7 +5,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:unicorn_robot_flutter_web/Constants/Enum/user_gender_enum.dart';
 import 'package:unicorn_robot_flutter_web/Controller/home_controller.dart';
 import 'package:unicorn_robot_flutter_web/Model/Data/clock_data.dart';
-import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_button.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_progress_indicator.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_text.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/Parts/user_image_circle.dart';
@@ -136,7 +135,7 @@ class _HomeViewState extends State<HomeView> {
     return Row(
       children: [
         Icon(icon),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         CustomText(
           text: label,
         ),
@@ -147,7 +146,6 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: Center(
@@ -233,15 +231,48 @@ class _HomeViewState extends State<HomeView> {
                                 : _buildUserInfo(),
                           ),
                         ),
-
-                        // const SizedBox(
-                        //   width: 800,
-                        //   height: 700,
-                        //   child: GoogleMapViewer(
-                        //     point: LatLng(35.6812, 137.7671),
-                        //     destination: LatLng(35.6580, 139.7016),
-                        //   ),
-                        // ),
+                        Positioned(
+                          top: 80,
+                          right: 25,
+                          child: emergencyQueue == null
+                              ? const SizedBox()
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        spreadRadius: 2,
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  width: 400,
+                                  height: 400,
+                                  child: ValueListenableBuilder(
+                                    valueListenable:
+                                        _controller.unicornPositionNotifier,
+                                    builder: (context, unicornPosition, _) {
+                                      return GoogleMapViewer(
+                                        point:
+                                            _controller.unicornInitialPosition,
+                                        destination: LatLng(
+                                            emergencyQueue.userLatitude,
+                                            emergencyQueue.userLongitude),
+                                        current: unicornPosition,
+                                        onRouteFetched: (polyline) async {
+                                          await _controller.queueTask(
+                                            polyline: polyline,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                        ),
 
                         // CustomButton(
                         //   text: 'ログアウト',
