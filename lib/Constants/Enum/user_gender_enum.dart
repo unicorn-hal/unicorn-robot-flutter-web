@@ -16,7 +16,7 @@ extension UserGenderEnumExtension on UserGenderEnum {
     }
   }
 
-  String get name {
+  String get displayName {
     switch (this) {
       case UserGenderEnum.male:
         return '男性';
