@@ -4,7 +4,29 @@ enum UserGenderEnum {
   other,
 }
 
-class UserGenderType {
+extension UserGenderEnumExtension on UserGenderEnum {
+  String get value {
+    switch (this) {
+      case UserGenderEnum.male:
+        return 'male';
+      case UserGenderEnum.female:
+        return 'female';
+      case UserGenderEnum.other:
+        return 'other';
+    }
+  }
+
+  String get name {
+    switch (this) {
+      case UserGenderEnum.male:
+        return '男性';
+      case UserGenderEnum.female:
+        return '女性';
+      case UserGenderEnum.other:
+        return 'その他';
+    }
+  }
+
   static UserGenderEnum fromString(String value) {
     switch (value) {
       case 'male':
@@ -14,20 +36,7 @@ class UserGenderType {
       case 'other':
         return UserGenderEnum.other;
       default:
-        throw Exception('Unknown type: $value');
-    }
-  }
-
-  static String toStringValue(UserGenderEnum value) {
-    switch (value) {
-      case UserGenderEnum.male:
-        return 'male';
-      case UserGenderEnum.female:
-        return 'female';
-      case UserGenderEnum.other:
-        return 'other';
-      default:
-        throw Exception('Unknown type: $value');
+        throw Exception('Unknown UserGenderEnum value: $value');
     }
   }
 }
