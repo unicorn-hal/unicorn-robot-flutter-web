@@ -33,12 +33,12 @@ class UserImageCircle extends StatelessWidget {
                     placeholder: (context, url) =>
                         const CustomProgressIndicator(size: 16),
                     errorWidget: (context, url, error) =>
-                        Assets.images.icons.unicorn.image(
+                        Assets.images.logo.image(
                       width: imageSize,
                       height: imageSize,
                     ),
                   )
-                : Assets.images.icons.unicorn.image(
+                : Assets.images.logo.image(
                     width: imageSize,
                     height: imageSize,
                   ),

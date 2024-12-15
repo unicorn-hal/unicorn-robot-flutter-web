@@ -200,7 +200,7 @@ class _HomeViewState extends State<HomeView> {
                             width: width * 0.2,
                             margin: const EdgeInsets.all(20),
                             alignment: Alignment.bottomLeft,
-                            child: Assets.images.icons.unicorn.image(),
+                            child: Assets.images.logo.image(),
                           ),
                         ),
                         Positioned(
