@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:unicorn_robot_flutter_web/Constants/Enum/user_gender_enum.dart';
 import 'package:unicorn_robot_flutter_web/Controller/home_controller.dart';
 import 'package:unicorn_robot_flutter_web/Model/Data/clock_data.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_button.dart';
@@ -50,19 +51,19 @@ class _HomeViewState extends State<HomeView> {
           aspectRatio: _controller.videoPlayerController.value.aspectRatio,
           child: !_controller.videoPlayerController.value.isInitialized
               ? const CustomProgressIndicator()
-              : Stack(
-                  children: [
-                    VideoPlayer(_controller.videoPlayerController),
-                    ValueListenableBuilder(
-                      valueListenable: _controller.emergencyQueueNotifier,
-                      builder: (context, value, _) {
-                        return Positioned(
+              : ValueListenableBuilder(
+                  valueListenable: _controller.emergencyQueueNotifier,
+                  builder: (context, emergencyQueue, _) {
+                    return Stack(
+                      children: [
+                        VideoPlayer(_controller.videoPlayerController),
+                        Positioned(
                           bottom: 50,
                           right: 25,
                           child: Container(
                             margin: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: value == null
+                              color: emergencyQueue == null
                                   ? Colors.green.withOpacity(0.75)
                                   : Colors.red.withOpacity(0.75),
                               borderRadius: BorderRadius.circular(36),
@@ -81,7 +82,7 @@ class _HomeViewState extends State<HomeView> {
                             ),
                             padding: const EdgeInsets.all(10),
                             child: Text(
-                              value == null ? '待機中' : '対応中',
+                              emergencyQueue == null ? '待機中' : '対応中',
                               style: const TextStyle(
                                 fontSize: 128,
                                 color: Colors.white,
@@ -90,60 +91,82 @@ class _HomeViewState extends State<HomeView> {
                               ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                    Positioned(
-                      bottom: -100,
-                      child: Container(
-                        width: width * 0.2,
-                        margin: const EdgeInsets.all(20),
-                        alignment: Alignment.bottomLeft,
-                        child: Assets.images.icons.unicorn.image(),
-                      ),
-                    ),
-                    Positioned(
-                      top: 25,
-                      right: 50,
-                      child: Container(
-                        alignment: Alignment.topRight,
-                        child: Consumer(
-                          builder: (context, ref, _) {
-                            final clockData = ref.watch(clockDataProvider);
-                            final data = clockData.getData();
-                            return CustomText(
-                              text: DateFormat('yyyy/MM/dd HH:mm:ss')
-                                  .format(data!),
-                              fontSize: 24,
-                            );
-                          },
                         ),
-                      ),
-                    ),
-                    CustomButton(
-                      text: 'POST',
-                      onTap: () {
-                        _controller.completeSupport();
-                      },
-                    ),
-                    const SizedBox(
-                      width: 800,
-                      height: 700,
-                      child: GoogleMapViewer(
-                        point: LatLng(35.6812, 137.7671),
-                        destination: LatLng(35.6580, 139.7016),
-                      ),
-                    ),
+                        Positioned(
+                          bottom: -100,
+                          child: Container(
+                            width: width * 0.2,
+                            margin: const EdgeInsets.all(20),
+                            alignment: Alignment.bottomLeft,
+                            child: Assets.images.icons.unicorn.image(),
+                          ),
+                        ),
+                        Positioned(
+                          top: 25,
+                          right: 50,
+                          child: Container(
+                            alignment: Alignment.topRight,
+                            child: Consumer(
+                              builder: (context, ref, _) {
+                                final clockData = ref.watch(clockDataProvider);
+                                final data = clockData.getData();
+                                return CustomText(
+                                  text: DateFormat('yyyy/MM/dd HH:mm:ss')
+                                      .format(data!),
+                                  fontSize: 24,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 25,
+                          left: 50,
+                          child: Container(
+                            alignment: Alignment.topLeft,
+                            child: emergencyQueue == null
+                                ? const SizedBox()
+                                : Column(
+                                    children: [
+                                      const CustomText(
+                                        text: '要請ユーザー情報',
+                                      ),
+                                      CustomText(
+                                        text:
+                                            '名前：${_controller.user!.lastName} ${_controller.user!.firstName}',
+                                      ),
+                                      CustomText(
+                                        text:
+                                            '性別：${_controller.user!.gender.displayName}',
+                                      ),
+                                      CustomText(
+                                        text:
+                                            '生年月日：${DateFormat('yyyy/MM/dd').format(_controller.user!.birthDate)}',
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
 
-                    // CustomButton(
-                    //   text: 'ログアウト',
-                    //   onTap: () {
-                    //     controller.signOut();
-                    //     window.location.reload();
-                    //   },
-                    // ),
-                  ],
-                ),
+                        // const SizedBox(
+                        //   width: 800,
+                        //   height: 700,
+                        //   child: GoogleMapViewer(
+                        //     point: LatLng(35.6812, 137.7671),
+                        //     destination: LatLng(35.6580, 139.7016),
+                        //   ),
+                        // ),
+
+                        // CustomButton(
+                        //   text: 'ログアウト',
+                        //   onTap: () {
+                        //     controller.signOut();
+                        //     window.location.reload();
+                        //   },
+                        // ),
+                      ],
+                    );
+                  }),
         ),
       ),
     );
