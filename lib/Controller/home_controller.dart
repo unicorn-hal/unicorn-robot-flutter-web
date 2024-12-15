@@ -3,25 +3,31 @@
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:unicorn_robot_flutter_web/Constants/Enum/robot_power_status_enum.dart';
 import 'package:unicorn_robot_flutter_web/Controller/Core/controller_core.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Emergency/WebSocket/emergency_queue.dart';
+import 'package:unicorn_robot_flutter_web/Model/Entity/Notification/send_notification_request.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Robot/robot.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Unicorn/unicorn_location.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Unicorn/unicorn_support.dart';
+import 'package:unicorn_robot_flutter_web/Model/Entity/User/user.dart';
 import 'package:unicorn_robot_flutter_web/Route/router.dart';
 import 'package:unicorn_robot_flutter_web/Service/Api/Robot/robot_api.dart';
 import 'package:unicorn_robot_flutter_web/Service/Api/Unicorn/unicorn_api.dart';
+import 'package:unicorn_robot_flutter_web/Service/Api/User/user_api.dart';
 import 'package:unicorn_robot_flutter_web/Service/Firebase/Authentication/authentication_service.dart';
 import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
+import 'package:unicorn_robot_flutter_web/Service/Notification/notification_service.dart';
 
 class HomeController extends ControllerCore {
   FirebaseAuthenticationService get _firebaseAuthService =>
       FirebaseAuthenticationService();
+  NotificationService get _notificationService => NotificationService();
+  UserApi get _userApi => UserApi();
   RobotApi get _robotApi => RobotApi();
   UnicornApi get _unicornApi => UnicornApi();
 
@@ -29,6 +35,7 @@ class HomeController extends ControllerCore {
   final ValueNotifier<EmergencyQueue?> _emergencyQueueNotifier =
       ValueNotifier(null);
   late final Robot robot;
+  User? user;
 
   final double unicornInitialLatitude = 35.681236;
   final double unicornInitialLongitude = 139.767125;
@@ -68,7 +75,7 @@ class HomeController extends ControllerCore {
   /// ログイン状態を確認
   Future<void> _checkAuthState() async {
     try {
-      final User? currentRobot = _firebaseAuthService.getRobot();
+      final auth.User? currentRobot = _firebaseAuthService.getRobot();
       if (currentRobot == null) {
         const LoginRoute().go(context);
         return;
@@ -261,6 +268,41 @@ class HomeController extends ControllerCore {
         robotId: robot.robotId,
       );
       _emergencyQueueNotifier.value = null;
+    } catch (e) {
+      Log.echo('Error: $e');
+    }
+  }
+
+  /// User情報の取得
+  Future<void> getUser(String userId) async {
+    try {
+      user = await _userApi.getUser(userId: userId);
+    } catch (e) {
+      Log.echo('Error: $e');
+    }
+  }
+
+  /// Userの検診結果を取得
+  Future<void> getCheckupResult(String userId) async {
+    try {
+      // await _userApi.getUserHealthCheckupList(userId: userId);
+    } catch (e) {
+      Log.echo('Error: $e');
+    }
+  }
+
+  /// 要請者に通知を送信
+  Future<void> sendNotification(SendNotificationRequest request) async {
+    try {
+      if (user == null) {
+        return;
+      }
+
+      final res = await _notificationService.sendNotification(request);
+
+      if (res != 200) {
+        throw Exception('Failed to send notification');
+      }
     } catch (e) {
       Log.echo('Error: $e');
     }
