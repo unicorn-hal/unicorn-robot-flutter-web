@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:unicorn_robot_flutter_web/Controller/home_controller.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_button.dart';
+import 'package:unicorn_robot_flutter_web/View/Component/Parts/google_map_viewer.dart';
 import 'package:video_player/video_player.dart';
 
 class HomeView extends StatefulWidget {
@@ -24,7 +26,7 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller.videoPlayerDispose();
     super.dispose();
   }
 
@@ -56,6 +58,16 @@ class _HomeViewState extends State<HomeView> {
                   _controller.logout();
                 },
               ),
+              const SizedBox(height: 20),
+              const SizedBox(
+                width: 800,
+                height: 700,
+                child: GoogleMapViewer(
+                  point: LatLng(35.6812, 137.7671),
+                  destination: LatLng(35.6580, 139.7016),
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
