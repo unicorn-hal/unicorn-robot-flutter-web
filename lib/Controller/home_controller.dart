@@ -53,9 +53,6 @@ class HomeController extends ControllerCore {
       }
     });
 
-    unicornLatitude = unicornInitialLatitude;
-    unicornLongitude = unicornInitialLongitude;
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _checkAuthState();
       await _connectWebSocket();
@@ -159,6 +156,10 @@ class HomeController extends ControllerCore {
           jsonDecode(frame.body!) as Map<String, dynamic>;
       _emergencyQueueNotifier.value = EmergencyQueue.fromJson(json);
 
+      /// Unicornの初期位置
+      unicornLatitude = unicornInitialLatitude;
+      unicornLongitude = unicornInitialLongitude;
+
       await queueTask();
     } catch (e) {
       Log.echo('Error: $e');
@@ -182,14 +183,22 @@ class HomeController extends ControllerCore {
     double userLatitude = _emergencyQueueNotifier.value!.userLatitude;
     double userLongitude = _emergencyQueueNotifier.value!.userLongitude;
 
-    double latStep = (userLatitude - unicornLatitude) / 5;
-    double lonStep = (userLongitude - unicornLongitude) / 5;
+    int steps = 10;
+    double latStep = (userLatitude - unicornLatitude) / steps;
+    double lonStep = (userLongitude - unicornLongitude) / steps;
 
-    for (int i = 1; i <= 5; i++) {
+    Log.echo('UserLocation: $userLatitude, $userLongitude');
+    Log.echo('UnicornLocation: $unicornLatitude, $unicornLongitude');
+    Log.echo('Step: $latStep, $lonStep');
+
+    for (int i = 1; i < steps; i++) {
+      unicornLatitude += latStep;
+      unicornLongitude += lonStep;
+
       final UnicornLocation step = UnicornLocation(
         userId: _emergencyQueueNotifier.value!.userId,
-        robotLatitude: unicornLatitude - latStep * i,
-        robotLongitude: unicornLongitude - lonStep * i,
+        robotLatitude: unicornLatitude,
+        robotLongitude: unicornLongitude,
       );
       await movingUnicorn(step);
       await Future.delayed(const Duration(seconds: 1));
