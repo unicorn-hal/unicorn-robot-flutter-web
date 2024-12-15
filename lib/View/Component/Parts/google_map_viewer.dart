@@ -6,6 +6,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'dart:convert';
 
 import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
+import 'package:unicorn_robot_flutter_web/gen/assets.gen.dart';
 
 class GoogleMapViewer extends StatefulWidget {
   const GoogleMapViewer({
@@ -33,6 +34,8 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
 
   final Set<Polyline> _polylines = {};
   bool _routeFetched = false;
+
+  BitmapDescriptor? _unicornPin;
 
   @override
   void initState() {
@@ -64,7 +67,7 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
       } else {
         try {
           mapController?.animateCamera(
-            CameraUpdate.newLatLng(_point),
+            CameraUpdate.newLatLng(_current ?? _point),
           );
         } catch (e) {
           Log.echo('Error: $e');
@@ -74,6 +77,9 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
   }
 
   Future<void> _fetchRoute() async {
+    _unicornPin = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(48, 48)),
+        Assets.images.icons.unicornPin.path);
     if (_routeFetched) return; // Prevent multiple calls
     PolylinePoints polylinePoints = PolylinePoints();
     try {
@@ -119,7 +125,11 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    if (_destination != null) {
+    if (_current != null) {
+      controller.animateCamera(
+        CameraUpdate.newLatLng(_current!),
+      );
+    } else if (_destination != null) {
       _animateCameraToBounds();
     } else {
       controller.animateCamera(
@@ -131,7 +141,6 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
   void _animateCameraToBounds() {
     List<LatLng> locations = [_point];
     if (_destination != null) locations.add(_destination!);
-    if (_current != null) locations.add(_current!);
 
     double south =
         locations.map((loc) => loc.latitude).reduce((a, b) => a < b ? a : b);
@@ -166,7 +175,7 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
         onMapCreated: _onMapCreated,
         initialCameraPosition: CameraPosition(
           target: _point,
-          zoom: _destination == null ? 14 : 11,
+          zoom: 15,
         ),
         polylines: _polylines,
         markers: {
@@ -188,8 +197,9 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
               markerId: const MarkerId('現在地'),
               position: _current!,
               infoWindow: const InfoWindow(title: 'Current Location'),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueAzure),
+              icon: _unicornPin ??
+                  BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueBlue),
             ),
         },
       ),
