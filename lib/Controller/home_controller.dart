@@ -11,6 +11,7 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:unicorn_robot_flutter_web/Constants/Enum/robot_power_status_enum.dart';
 import 'package:unicorn_robot_flutter_web/Controller/Core/controller_core.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Emergency/WebSocket/emergency_queue.dart';
+import 'package:unicorn_robot_flutter_web/Model/Entity/HealthCheckup/health_checkup.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Notification/send_notification_request.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Robot/robot.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/Unicorn/unicorn_location.dart';
@@ -39,6 +40,7 @@ class HomeController extends ControllerCore {
       ValueNotifier(null);
   late final Robot robot;
   User? user;
+  List<HealthCheckup>? healthCheckUpList;
 
   final double unicornInitialLatitude = 35.681236;
   final double unicornInitialLongitude = 139.767125;
@@ -210,11 +212,17 @@ class HomeController extends ControllerCore {
       Log.echo('WebSocket: ${frame.body}');
       final Map<String, dynamic> json =
           jsonDecode(frame.body!) as Map<String, dynamic>;
-      _emergencyQueueNotifier.value = EmergencyQueue.fromJson(json);
+      EmergencyQueue emergencyQueue = EmergencyQueue.fromJson(json);
 
       /// Unicornの初期位置
       unicornLatitude = unicornInitialLatitude;
       unicornLongitude = unicornInitialLongitude;
+
+      /// User情報の取得
+      await getUser(emergencyQueue.userId);
+      await getCheckupResult(emergencyQueue.userId);
+
+      _emergencyQueueNotifier.value = emergencyQueue;
 
       await queueTask();
     } catch (e) {
@@ -343,7 +351,8 @@ class HomeController extends ControllerCore {
   /// Userの検診結果を取得
   Future<void> getCheckupResult(String userId) async {
     try {
-      // await _userApi.getUserHealthCheckupList(userId: userId);
+      healthCheckUpList =
+          await _userApi.getUserHealthCheckupList(userId: userId);
     } catch (e) {
       Log.echo('Error: $e');
     }
