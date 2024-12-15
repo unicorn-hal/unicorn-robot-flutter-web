@@ -102,7 +102,7 @@ class HomeController extends ControllerCore {
   }
 
   /// 後始末
-  void dispose() {
+  void videoPlayerDispose() {
     videoPlayerController.dispose();
   }
 }
