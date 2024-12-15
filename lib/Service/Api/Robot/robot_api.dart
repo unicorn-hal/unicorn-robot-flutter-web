@@ -29,12 +29,7 @@ class RobotApi extends ApiCore with Endpoint {
         "status": powerStatus.value,
       });
       Log.echo("response: ${response.data}");
-      // todo: スキーマ変更依頼
-      return Robot.fromJson({
-        "robotID": robotId,
-        "robotName": response.data["robotName"],
-        "status": response.data["robotStatus"],
-      });
+      return Robot.fromJson(response.data);
     } catch (e) {
       return null;
     }
