@@ -115,19 +115,59 @@ class HomeController extends ControllerCore {
     }
   }
 
-  /// Robot情報の取得
-  Future<Robot> _getRobot(String robotId) async {
-    final Robot? robot = await _robotApi.getRobot(robotId);
-    if (robot == null) {
-      throw Exception('Failed to get robot');
-    }
-    return robot;
+  /// ビデオプレイヤーの初期化
+  void initializeVideoPlayer(VoidCallback onInitialized) {
+    videoPlayerController = VideoPlayerController.asset(
+      Assets.videos.unicornShort,
+    )
+      ..setLooping(true)
+      ..initialize().then((_) {
+        onInitialized();
+        videoPlayerController.setVolume(0.0);
+        videoPlayerController.play();
+      });
   }
 
-  /// ログアウト
-  void signOut() {
-    _firebaseAuthService.signOut();
-    const LoginRoute().go(context);
+  /// Google Maps JavaScript を .env のキーで動的にロード
+  /// [onMapJsInitialized] はロード完了後に呼ばれるコールバック
+  Future<void> initializeGoogleMapsJs(VoidCallback onMapJsInitialized) async {
+    // すでにロード済みなら何もしない
+    if (_googleMapsJsLoaded) {
+      onMapJsInitialized();
+      return;
+    }
+
+    final apiKey = dotenv.env['GOOGLE_MAP_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      throw Exception('Missing GOOGLE_MAP_API_KEY in .env');
+    }
+
+    // 重複ロードを避けるために script タグが存在しないか確認
+    if (html.document.getElementById('google_maps_api') != null) {
+      _googleMapsJsLoaded = true;
+      onMapJsInitialized();
+      return;
+    }
+
+    final script = html.ScriptElement()
+      ..id = 'google_maps_api'
+      ..src = 'https://maps.googleapis.com/maps/api/js?key=$apiKey'
+      ..defer = true;
+
+    final completer = Completer<void>();
+    script.onLoad.listen((_) {
+      _googleMapsJsLoaded = true;
+      completer.complete();
+    });
+    script.onError.listen((_) {
+      completer.completeError('Failed to load Google Maps JS');
+    });
+
+    html.document.head?.append(script);
+
+    // ロード完了待ち
+    await completer.future;
+    onMapJsInitialized();
   }
 
   /// WebSocket接続
@@ -282,6 +322,15 @@ class HomeController extends ControllerCore {
     }
   }
 
+  /// Robot情報の取得
+  Future<Robot> _getRobot(String robotId) async {
+    final Robot? robot = await _robotApi.getRobot(robotId);
+    if (robot == null) {
+      throw Exception('Failed to get robot');
+    }
+    return robot;
+  }
+
   /// User情報の取得
   Future<void> getUser(String userId) async {
     try {
@@ -317,59 +366,10 @@ class HomeController extends ControllerCore {
     }
   }
 
-  /// ビデオプレイヤーの初期化
-  void initializeVideoPlayer(VoidCallback onInitialized) {
-    videoPlayerController = VideoPlayerController.asset(
-      Assets.videos.unicornShort,
-    )
-      ..setLooping(true)
-      ..initialize().then((_) {
-        onInitialized();
-        videoPlayerController.setVolume(0.0);
-        videoPlayerController.play();
-      });
-  }
-
-  /// Google Maps JavaScript を .env のキーで動的にロード
-  /// [onMapJsInitialized] はロード完了後に呼ばれるコールバック
-  Future<void> initializeGoogleMapsJs(VoidCallback onMapJsInitialized) async {
-    // すでにロード済みなら何もしない
-    if (_googleMapsJsLoaded) {
-      onMapJsInitialized();
-      return;
-    }
-
-    final apiKey = dotenv.env['GOOGLE_MAP_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('Missing GOOGLE_MAP_API_KEY in .env');
-    }
-
-    // 重複ロードを避けるために script タグが存在しないか確認
-    if (html.document.getElementById('google_maps_api') != null) {
-      _googleMapsJsLoaded = true;
-      onMapJsInitialized();
-      return;
-    }
-
-    final script = html.ScriptElement()
-      ..id = 'google_maps_api'
-      ..src = 'https://maps.googleapis.com/maps/api/js?key=$apiKey'
-      ..defer = true;
-
-    final completer = Completer<void>();
-    script.onLoad.listen((_) {
-      _googleMapsJsLoaded = true;
-      completer.complete();
-    });
-    script.onError.listen((_) {
-      completer.completeError('Failed to load Google Maps JS');
-    });
-
-    html.document.head?.append(script);
-
-    // ロード完了待ち
-    await completer.future;
-    onMapJsInitialized();
+  /// ログアウト
+  void signOut() {
+    _firebaseAuthService.signOut();
+    const LoginRoute().go(context);
   }
 
   /// Dispose
