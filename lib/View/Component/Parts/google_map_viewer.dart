@@ -179,8 +179,17 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
         ),
         polylines: _polylines,
         markers: {
+          if (_current != null)
+            Marker(
+              markerId: const MarkerId('現在地'),
+              position: _current!,
+              infoWindow: const InfoWindow(title: '現在地'),
+              icon: _unicornPin ??
+                  BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueBlue),
+            ),
           Marker(
-            markerId: const MarkerId('point'),
+            markerId: const MarkerId('Unicorn出発地点'),
             position: _point,
             infoWindow: const InfoWindow(title: 'Unicorn出発地点'),
             icon: BitmapDescriptor.defaultMarkerWithHue(
@@ -190,16 +199,7 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
             Marker(
               markerId: const MarkerId('要請先'),
               position: _destination!,
-              infoWindow: const InfoWindow(title: 'Destination'),
-            ),
-          if (_current != null)
-            Marker(
-              markerId: const MarkerId('現在地'),
-              position: _current!,
-              infoWindow: const InfoWindow(title: 'Current Location'),
-              icon: _unicornPin ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueBlue),
+              infoWindow: const InfoWindow(title: '要請先'),
             ),
         },
       ),
