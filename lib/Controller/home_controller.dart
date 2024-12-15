@@ -20,7 +20,7 @@ import 'package:unicorn_robot_flutter_web/Service/Firebase/Authentication/authen
 import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
 
 class HomeController extends ControllerCore {
-  final FirebaseAuthenticationService _firebaseAuthenticationService =
+  FirebaseAuthenticationService get _firebaseAuthService =>
       FirebaseAuthenticationService();
   RobotApi get _robotApi => RobotApi();
   UnicornApi get _unicornApi => UnicornApi();
@@ -68,7 +68,7 @@ class HomeController extends ControllerCore {
   /// ログイン状態を確認
   Future<void> _checkAuthState() async {
     try {
-      final User? currentRobot = _firebaseAuthenticationService.getRobot();
+      final User? currentRobot = _firebaseAuthService.getRobot();
       if (currentRobot == null) {
         const LoginRoute().go(context);
         return;
@@ -110,7 +110,7 @@ class HomeController extends ControllerCore {
 
   /// ログアウト
   void signOut() {
-    _firebaseAuthenticationService.signOut();
+    _firebaseAuthService.signOut();
     const LoginRoute().go(context);
   }
 
