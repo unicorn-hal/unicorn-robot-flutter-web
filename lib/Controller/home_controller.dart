@@ -1,7 +1,8 @@
 // ignore_for_file: use_build_context_synchronously, avoid_web_libraries_in_flutter
 
 import 'dart:convert';
-import 'dart:html';
+import 'dart:html' as html;
+import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
@@ -22,6 +23,8 @@ import 'package:unicorn_robot_flutter_web/Service/Api/User/user_api.dart';
 import 'package:unicorn_robot_flutter_web/Service/Firebase/Authentication/authentication_service.dart';
 import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
 import 'package:unicorn_robot_flutter_web/Service/Notification/notification_service.dart';
+import 'package:unicorn_robot_flutter_web/gen/assets.gen.dart';
+import 'package:video_player/video_player.dart';
 
 class HomeController extends ControllerCore {
   FirebaseAuthenticationService get _firebaseAuthService =>
@@ -43,7 +46,12 @@ class HomeController extends ControllerCore {
   late double unicornLatitude;
   late double unicornLongitude;
 
-  BuildContext context;
+  late VideoPlayerController videoPlayerController;
+  final BuildContext context;
+
+  // Google Maps JS ロード状態
+  bool _googleMapsJsLoaded = false;
+
   HomeController(this.context) {
     Log.echo('HomeController');
   }
@@ -65,7 +73,8 @@ class HomeController extends ControllerCore {
       await _connectWebSocket();
       await _robotApi.putRobotPower(
           robot.robotId, RobotPowerStatusEnum.robotWaiting);
-      document.addEventListener('visibilitychange', _handleVisibilityChange);
+      html.document
+          .addEventListener('visibilitychange', _handleVisibilityChange);
     });
   }
 
@@ -90,9 +99,9 @@ class HomeController extends ControllerCore {
   }
 
   /// タブの表示状態を監視
-  void _handleVisibilityChange(Event event) async {
+  void _handleVisibilityChange(html.Event event) async {
     try {
-      RobotPowerStatusEnum status = document.hidden ?? false
+      RobotPowerStatusEnum status = html.document.hidden ?? false
           ? RobotPowerStatusEnum.shutdown
           : RobotPowerStatusEnum.robotWaiting;
       Log.echo('VisibilityChange: ${status.value}');
@@ -308,11 +317,68 @@ class HomeController extends ControllerCore {
     }
   }
 
+  /// ビデオプレイヤーの初期化
+  void initializeVideoPlayer(VoidCallback onInitialized) {
+    videoPlayerController = VideoPlayerController.asset(
+      Assets.videos.unicornShort,
+    )
+      ..setLooping(true)
+      ..initialize().then((_) {
+        onInitialized();
+        videoPlayerController.setVolume(0.0);
+        videoPlayerController.play();
+      });
+  }
+
+  /// Google Maps JavaScript を .env のキーで動的にロード
+  /// [onMapJsInitialized] はロード完了後に呼ばれるコールバック
+  Future<void> initializeGoogleMapsJs(VoidCallback onMapJsInitialized) async {
+    // すでにロード済みなら何もしない
+    if (_googleMapsJsLoaded) {
+      onMapJsInitialized();
+      return;
+    }
+
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      throw Exception('Missing GOOGLE_MAPS_API_KEY in .env');
+    }
+
+    // 重複ロードを避けるために script タグが存在しないか確認
+    if (html.document.getElementById('google_maps_api') != null) {
+      _googleMapsJsLoaded = true;
+      onMapJsInitialized();
+      return;
+    }
+
+    final script = html.ScriptElement()
+      ..id = 'google_maps_api'
+      ..src = 'https://maps.googleapis.com/maps/api/js?key=$apiKey'
+      ..defer = true;
+
+    final completer = Completer<void>();
+    script.onLoad.listen((_) {
+      _googleMapsJsLoaded = true;
+      completer.complete();
+    });
+    script.onError.listen((_) {
+      completer.completeError('Failed to load Google Maps JS');
+    });
+
+    html.document.head?.append(script);
+
+    // ロード完了待ち
+    await completer.future;
+    onMapJsInitialized();
+  }
+
   /// Dispose
   void dispose() async {
     Log.echo('dispose');
+    videoPlayerController.dispose();
     _wsConnectionStatus.dispose();
-    document.removeEventListener('visibilitychange', _handleVisibilityChange);
+    html.document
+        .removeEventListener('visibilitychange', _handleVisibilityChange);
     await _robotApi.putRobotPower(
         robot.robotId, RobotPowerStatusEnum.robotWaiting);
   }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:unicorn_robot_flutter_web/Controller/home_controller.dart';
 import 'package:unicorn_robot_flutter_web/Model/Data/clock_data.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_button.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_progress_indicator.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_text.dart';
 import 'package:unicorn_robot_flutter_web/gen/assets.gen.dart';
+import 'package:unicorn_robot_flutter_web/View/Component/Parts/google_map_viewer.dart';
 import 'package:video_player/video_player.dart';
 
 class HomeView extends StatefulWidget {
@@ -17,29 +19,20 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  late HomeController controller;
-  late VideoPlayerController _videoPlayerController;
+  late HomeController _controller;
 
   @override
   void initState() {
     super.initState();
-    controller = HomeController(context);
-
-    _videoPlayerController =
-        VideoPlayerController.asset(Assets.videos.unicornShort);
-    _videoPlayerController.initialize().then((_) {
-      // 最初のフレームを描画するため初期化後に更新
-      setState(() {
-        _videoPlayerController.setLooping(true);
-        _videoPlayerController.play();
-      });
+    _controller = HomeController(context);
+    _controller.initializeVideoPlayer(() {
+      setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _videoPlayerController.dispose();
-    controller.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -51,14 +44,14 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       body: Center(
         child: AspectRatio(
-          aspectRatio: _videoPlayerController.value.aspectRatio,
-          child: !_videoPlayerController.value.isInitialized
+          aspectRatio: _controller.videoPlayerController.value.aspectRatio,
+          child: !_controller.videoPlayerController.value.isInitialized
               ? const CustomProgressIndicator()
               : Stack(
                   children: [
-                    VideoPlayer(_videoPlayerController),
+                    VideoPlayer(_controller.videoPlayerController),
                     ValueListenableBuilder(
-                      valueListenable: controller.emergencyQueueNotifier,
+                      valueListenable: _controller.emergencyQueueNotifier,
                       builder: (context, value, _) {
                         return Positioned(
                           bottom: 50,
@@ -127,9 +120,17 @@ class _HomeViewState extends State<HomeView> {
                     CustomButton(
                       text: 'POST',
                       onTap: () {
-                        controller.completeSupport();
+                        _controller.completeSupport();
                       },
-                    )
+                    ),
+                    const SizedBox(
+                      width: 800,
+                      height: 700,
+                      child: GoogleMapViewer(
+                        point: LatLng(35.6812, 137.7671),
+                        destination: LatLng(35.6580, 139.7016),
+                      ),
+                    ),
 
                     // CustomButton(
                     //   text: 'ログアウト',
