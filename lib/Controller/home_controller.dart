@@ -339,9 +339,9 @@ class HomeController extends ControllerCore {
       return;
     }
 
-    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    final apiKey = dotenv.env['GOOGLE_MAP_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('Missing GOOGLE_MAPS_API_KEY in .env');
+      throw Exception('Missing GOOGLE_MAP_API_KEY in .env');
     }
 
     // 重複ロードを避けるために script タグが存在しないか確認

@@ -25,6 +25,9 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     _controller = HomeController(context);
+    _controller.initializeGoogleMapsJs(() {
+      setState(() {});
+    });
     _controller.initializeVideoPlayer(() {
       setState(() {});
     });
