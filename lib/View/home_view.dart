@@ -7,7 +7,6 @@ import 'package:unicorn_robot_flutter_web/Controller/home_controller.dart';
 import 'package:unicorn_robot_flutter_web/Model/Data/clock_data.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_progress_indicator.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/CustomWidget/custom_text.dart';
-import 'package:unicorn_robot_flutter_web/View/Component/Parts/user_image_circle.dart';
 import 'package:unicorn_robot_flutter_web/gen/assets.gen.dart';
 import 'package:unicorn_robot_flutter_web/View/Component/Parts/google_map_viewer.dart';
 import 'package:unicorn_robot_flutter_web/gen/colors.gen.dart';
@@ -43,6 +42,8 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildUserInfo() {
     return Container(
+      width: 400,
+      height: 400,
       decoration: BoxDecoration(
         border: Border.all(color: ColorName.mainColor, width: 2),
         borderRadius: BorderRadius.circular(8),
@@ -50,6 +51,7 @@ class _HomeViewState extends State<HomeView> {
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const CustomText(
@@ -57,15 +59,9 @@ class _HomeViewState extends State<HomeView> {
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 10),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              UserImageCircle(
-                imageSize: 100,
-                imageUrl: _controller.user!.iconImageUrl ?? '',
-              ),
-              const SizedBox(width: 20),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -99,13 +95,11 @@ class _HomeViewState extends State<HomeView> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
           const CustomText(
             text: '最新の検診結果',
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -148,15 +142,26 @@ class _HomeViewState extends State<HomeView> {
     double width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      body: Center(
-        child: AspectRatio(
-          aspectRatio: _controller.videoPlayerController.value.aspectRatio,
-          child: !_controller.videoPlayerController.value.isInitialized
-              ? const CustomProgressIndicator()
-              : ValueListenableBuilder(
-                  valueListenable: _controller.emergencyQueueNotifier,
-                  builder: (context, emergencyQueue, _) {
-                    return Stack(
+      body: ValueListenableBuilder(
+        valueListenable: _controller.emergencyQueueNotifier,
+        builder: (context, emergencyQueue, _) {
+          return Container(
+            width: width,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(
+                color: emergencyQueue == null
+                    ? Colors.green.withOpacity(0.75)
+                    : Colors.red.withOpacity(0.75),
+                width: 20,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: AspectRatio(
+              aspectRatio: _controller.videoPlayerController.value.aspectRatio,
+              child: !_controller.videoPlayerController.value.isInitialized
+                  ? const CustomProgressIndicator()
+                  : Stack(
                       children: [
                         VideoPlayer(_controller.videoPlayerController),
                         Positioned(
@@ -236,27 +241,28 @@ class _HomeViewState extends State<HomeView> {
                           right: 25,
                           child: emergencyQueue == null
                               ? const SizedBox()
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        spreadRadius: 2,
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 3),
+                              : ValueListenableBuilder(
+                                  valueListenable:
+                                      _controller.unicornPositionNotifier,
+                                  builder: (context, unicornPosition, _) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.1),
+                                            spreadRadius: 2,
+                                            blurRadius: 5,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  width: 400,
-                                  height: 400,
-                                  child: ValueListenableBuilder(
-                                    valueListenable:
-                                        _controller.unicornPositionNotifier,
-                                    builder: (context, unicornPosition, _) {
-                                      return GoogleMapViewer(
+                                      clipBehavior: Clip.antiAlias,
+                                      width: 400,
+                                      height: 400,
+                                      child: GoogleMapViewer(
                                         point:
                                             _controller.unicornInitialPosition,
                                         destination: LatLng(
@@ -268,9 +274,9 @@ class _HomeViewState extends State<HomeView> {
                                             polyline: polyline,
                                           );
                                         },
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    );
+                                  },
                                 ),
                         ),
 
@@ -282,10 +288,10 @@ class _HomeViewState extends State<HomeView> {
                         //   },
                         // ),
                       ],
-                    );
-                  },
-                ),
-        ),
+                    ),
+            ),
+          );
+        },
       ),
     );
   }
