@@ -1,5 +1,5 @@
-import 'package:unicorn_robot_flutter_web/Model/Entity/Unicorn/unicorn_request.dart';
-import 'package:unicorn_robot_flutter_web/Model/Entity/Unicorn/unicorn_response.dart';
+import 'package:unicorn_robot_flutter_web/Model/Entity/Unicorn/unicorn_location.dart';
+import 'package:unicorn_robot_flutter_web/Model/Entity/Unicorn/unicorn_support.dart';
 import 'package:unicorn_robot_flutter_web/Model/Entity/api_response.dart';
 import 'package:unicorn_robot_flutter_web/Service/Api/Core/api_core.dart';
 import 'package:unicorn_robot_flutter_web/Service/Api/Core/endpoint.dart';

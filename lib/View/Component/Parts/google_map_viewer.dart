@@ -6,15 +6,20 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'dart:convert';
 
 import 'package:unicorn_robot_flutter_web/Service/Log/log_service.dart';
+import 'package:unicorn_robot_flutter_web/gen/assets.gen.dart';
 
 class GoogleMapViewer extends StatefulWidget {
   const GoogleMapViewer({
     super.key,
     required this.point,
     this.destination,
+    this.current,
+    this.onRouteFetched,
   });
   final LatLng point;
   final LatLng? destination;
+  final LatLng? current;
+  final Function(List<LatLng>)? onRouteFetched;
 
   @override
   State<GoogleMapViewer> createState() => _GoogleMapViewerState();
@@ -25,14 +30,19 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
 
   late LatLng _point;
   late LatLng? _destination;
+  late LatLng? _current;
 
   final Set<Polyline> _polylines = {};
+  bool _routeFetched = false;
+
+  BitmapDescriptor? _unicornPin;
 
   @override
   void initState() {
     super.initState();
     _point = widget.point;
     _destination = widget.destination;
+    _current = widget.current;
 
     if (_destination != null) {
       _fetchRoute();
@@ -43,19 +53,21 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
   void didUpdateWidget(GoogleMapViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.point != oldWidget.point ||
-        widget.destination != oldWidget.destination) {
+        widget.destination != oldWidget.destination ||
+        widget.current != oldWidget.current) {
       setState(() {
         _point = widget.point;
         _destination = widget.destination;
-        _polylines.clear();
+        _current = widget.current;
       });
-      if (_destination != null) {
+      if (_destination != null && _destination != oldWidget.destination) {
+        _routeFetched = false;
         _fetchRoute();
         _animateCameraToBounds();
       } else {
         try {
-          mapController!.animateCamera(
-            CameraUpdate.newLatLng(_point),
+          mapController?.animateCamera(
+            CameraUpdate.newLatLng(_current ?? _point),
           );
         } catch (e) {
           Log.echo('Error: $e');
@@ -65,6 +77,10 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
   }
 
   Future<void> _fetchRoute() async {
+    _unicornPin = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(48, 48)),
+        Assets.images.icons.unicornPin.path);
+    if (_routeFetched) return; // Prevent multiple calls
     PolylinePoints polylinePoints = PolylinePoints();
     try {
       String apiKey = dotenv.env['GOOGLE_MAP_API_KEY']!;
@@ -97,7 +113,11 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
             width: 5,
           ),
         );
+        _routeFetched = true;
       });
+      if (widget.onRouteFetched != null) {
+        widget.onRouteFetched!(points);
+      }
     } catch (e) {
       Log.echo('Error fetching route: $e');
     }
@@ -105,7 +125,11 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    if (_destination != null) {
+    if (_current != null) {
+      controller.animateCamera(
+        CameraUpdate.newLatLng(_current!),
+      );
+    } else if (_destination != null) {
       _animateCameraToBounds();
     } else {
       controller.animateCamera(
@@ -115,26 +139,25 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
   }
 
   void _animateCameraToBounds() {
+    List<LatLng> locations = [_point];
+    if (_destination != null) locations.add(_destination!);
+
+    double south =
+        locations.map((loc) => loc.latitude).reduce((a, b) => a < b ? a : b);
+    double west =
+        locations.map((loc) => loc.longitude).reduce((a, b) => a < b ? a : b);
+    double north =
+        locations.map((loc) => loc.latitude).reduce((a, b) => a > b ? a : b);
+    double east =
+        locations.map((loc) => loc.longitude).reduce((a, b) => a > b ? a : b);
+
     LatLngBounds bounds = LatLngBounds(
-      southwest: LatLng(
-        _point.latitude < _destination!.latitude
-            ? _point.latitude
-            : _destination!.latitude,
-        _point.longitude < _destination!.longitude
-            ? _point.longitude
-            : _destination!.longitude,
-      ),
-      northeast: LatLng(
-        _point.latitude > _destination!.latitude
-            ? _point.latitude
-            : _destination!.latitude,
-        _point.longitude > _destination!.longitude
-            ? _point.longitude
-            : _destination!.longitude,
-      ),
+      southwest: LatLng(south, west),
+      northeast: LatLng(north, east),
     );
+
     try {
-      mapController!.animateCamera(
+      mapController?.animateCamera(
         CameraUpdate.newLatLngBounds(bounds, 50),
       );
     } catch (e) {
@@ -152,22 +175,31 @@ class _GoogleMapViewerState extends State<GoogleMapViewer> {
         onMapCreated: _onMapCreated,
         initialCameraPosition: CameraPosition(
           target: _point,
-          zoom: _destination == null ? 14 : 11,
+          zoom: 15,
         ),
         polylines: _polylines,
         markers: {
+          if (_current != null)
+            Marker(
+              markerId: const MarkerId('現在地'),
+              position: _current!,
+              infoWindow: const InfoWindow(title: '現在地'),
+              icon: _unicornPin ??
+                  BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueBlue),
+            ),
           Marker(
-            markerId: const MarkerId('point'),
+            markerId: const MarkerId('Unicorn出発地点'),
             position: _point,
-            infoWindow: const InfoWindow(title: 'Start Point'),
+            infoWindow: const InfoWindow(title: 'Unicorn出発地点'),
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueGreen),
           ),
           if (_destination != null)
             Marker(
-              markerId: const MarkerId('destination'),
+              markerId: const MarkerId('要請先'),
               position: _destination!,
-              infoWindow: const InfoWindow(title: 'Destination'),
+              infoWindow: const InfoWindow(title: '要請先'),
             ),
         },
       ),

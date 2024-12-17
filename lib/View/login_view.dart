@@ -16,7 +16,7 @@ class LoginView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Assets.images.icons.unicorn.image(
+            Assets.images.logo.image(
               width: 350,
               height: 350,
             ),
