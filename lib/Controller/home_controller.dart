@@ -1,8 +1,8 @@
 // ignore_for_file: use_build_context_synchronously, avoid_web_libraries_in_flutter
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html' as html;
-import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
@@ -55,6 +55,9 @@ class HomeController extends ControllerCore {
   // Google Maps JS ロード状態
   bool _googleMapsJsLoaded = false;
 
+  // Polyline Completer
+  Completer<List<LatLng>>? _polylineCompleter;
+
   HomeController(this.context) {
     Log.echo('HomeController');
   }
@@ -63,14 +66,6 @@ class HomeController extends ControllerCore {
   void initialize() {
     unicornPositionNotifier = ValueNotifier(unicornInitialPosition);
     _wsConnectionStatus.value = false;
-
-    // _listenWsConnectionStatus((value) {
-    //   try {
-    //     Log.echo('WebSocketConnectionStatus: $value');
-    //   } catch (e) {
-    //     Log.echo('Error: $e');
-    //   }
-    // });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _checkAuthState();
@@ -248,11 +243,21 @@ class HomeController extends ControllerCore {
 
     _emergencyQueueNotifier.value = emergencyQueue;
 
-    // ポリラインを取得（実装に合わせて修正してください）
-    List<LatLng> polyline = await getPolyline(unicornPositionNotifier.value,
-        LatLng(emergencyQueue.userLatitude, emergencyQueue.userLongitude));
+    // Polyline Completerを初期化
+    _polylineCompleter = Completer<List<LatLng>>();
 
+    // ViewにPolylineの準備を促し、PolyLineが提供されるのを待つ
+    List<LatLng> polyline = await _polylineCompleter!.future;
+
+    // ポリラインを取得したらキュータスクを開始
     await queueTask(polyline: polyline);
+  }
+
+  /// ViewからPolylineを提供
+  void providePolyline(List<LatLng> polyline) {
+    if (_polylineCompleter != null && !_polylineCompleter!.isCompleted) {
+      _polylineCompleter!.complete(polyline);
+    }
   }
 
   /// EmergencyQueueのタスク消化
@@ -429,11 +434,5 @@ class HomeController extends ControllerCore {
         .removeEventListener('visibilitychange', _handleVisibilityChange);
     await _robotApi.putRobotPower(
         robot.robotId, RobotPowerStatusEnum.robotWaiting);
-  }
-
-  /// ポリライン取得（実装は適宜追加してください）
-  Future<List<LatLng>> getPolyline(LatLng start, LatLng end) async {
-    // ポリライン取得ロジックを実装してください
-    return [];
   }
 }

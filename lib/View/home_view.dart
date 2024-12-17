@@ -270,9 +270,7 @@ class _HomeViewState extends State<HomeView> {
                                             emergencyQueue.userLongitude),
                                         current: unicornPosition,
                                         onRouteFetched: (polyline) async {
-                                          await _controller.queueTask(
-                                            polyline: polyline,
-                                          );
+                                          _controller.providePolyline(polyline);
                                         },
                                       ),
                                     );
