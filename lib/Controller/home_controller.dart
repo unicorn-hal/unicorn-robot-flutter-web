@@ -43,6 +43,9 @@ class HomeController extends ControllerCore {
   User? user;
   List<HealthCheckup>? healthCheckUpList;
 
+  List<EmergencyQueue> emergencyQueueList = [];
+  bool isProcessing = false;
+
   final LatLng unicornInitialPosition = const LatLng(35.681236, 139.767125);
   late final ValueNotifier<LatLng> unicornPositionNotifier;
 
@@ -61,13 +64,13 @@ class HomeController extends ControllerCore {
     unicornPositionNotifier = ValueNotifier(unicornInitialPosition);
     _wsConnectionStatus.value = false;
 
-    _listenWsConnectionStatus((value) {
-      try {
-        Log.echo('WebSocketConnectionStatus: $value');
-      } catch (e) {
-        Log.echo('Error: $e');
-      }
-    });
+    // _listenWsConnectionStatus((value) {
+    //   try {
+    //     Log.echo('WebSocketConnectionStatus: $value');
+    //   } catch (e) {
+    //     Log.echo('Error: $e');
+    //   }
+    // });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _checkAuthState();
@@ -213,27 +216,43 @@ class HomeController extends ControllerCore {
           jsonDecode(frame.body!) as Map<String, dynamic>;
       EmergencyQueue emergencyQueue = EmergencyQueue.fromJson(json);
 
-      /// Unicornの初期位置
-      unicornPositionNotifier.value = unicornInitialPosition;
+      /// キューをリストに追加
+      emergencyQueueList.add(emergencyQueue);
 
-      /// User情報の取得
-      await getUser(emergencyQueue.userId);
-      await getCheckupResult(emergencyQueue.userId);
-
-      _emergencyQueueNotifier.value = emergencyQueue;
-
-      // await queueTask();
+      /// 処理中でなければ次のキューを処理
+      if (!isProcessing) {
+        await _processNextQueue();
+      }
     } catch (e) {
       Log.echo('Error: $e');
-      _emergencyQueueNotifier.value = null;
     }
   }
 
-  /// WebSocketの状態をListen
-  void _listenWsConnectionStatus(ValueChanged<bool> callback) {
-    _wsConnectionStatus.addListener(() {
-      callback(_wsConnectionStatus.value);
-    });
+  /// 次のキューを処理
+  Future<void> _processNextQueue() async {
+    if (emergencyQueueList.isEmpty) {
+      isProcessing = false;
+      return;
+    }
+
+    isProcessing = true;
+
+    final emergencyQueue = emergencyQueueList.first;
+
+    /// Unicornの初期位置
+    unicornPositionNotifier.value = unicornInitialPosition;
+
+    /// User情報の取得
+    await getUser(emergencyQueue.userId);
+    await getCheckupResult(emergencyQueue.userId);
+
+    _emergencyQueueNotifier.value = emergencyQueue;
+
+    // ポリラインを取得（実装に合わせて修正してください）
+    List<LatLng> polyline = await getPolyline(unicornPositionNotifier.value,
+        LatLng(emergencyQueue.userLatitude, emergencyQueue.userLongitude));
+
+    await queueTask(polyline: polyline);
   }
 
   /// EmergencyQueueのタスク消化
@@ -262,13 +281,7 @@ class HomeController extends ControllerCore {
     thinnedPolyline.add(LatLng(_emergencyQueueNotifier.value!.userLatitude,
         _emergencyQueueNotifier.value!.userLongitude));
 
-    // Log thinned points
-    Log.echo('Thinned Polyline Points:');
-    for (LatLng point in thinnedPolyline) {
-      Log.echo('Point: ${point.latitude}, ${point.longitude}');
-    }
-
-    // Move unicorn along thinned polyline
+    // 移動処理
     for (LatLng point in thinnedPolyline) {
       unicornPositionNotifier.value = point;
 
@@ -281,7 +294,7 @@ class HomeController extends ControllerCore {
       await Future.delayed(const Duration(seconds: 1));
     }
 
-    // Arrival notification
+    // 到着通知
     await arrivalUnicorn(
       UnicornLocation(
         userId: _emergencyQueueNotifier.value!.userId,
@@ -339,7 +352,17 @@ class HomeController extends ControllerCore {
         ),
         robotId: robot.robotId,
       );
+
+      // キューを更新
+      emergencyQueueList.removeAt(0);
       _emergencyQueueNotifier.value = null;
+
+      // 次のキューを処理
+      if (emergencyQueueList.isNotEmpty) {
+        await _processNextQueue();
+      } else {
+        isProcessing = false;
+      }
     } catch (e) {
       Log.echo('Error: $e');
     }
@@ -406,5 +429,11 @@ class HomeController extends ControllerCore {
         .removeEventListener('visibilitychange', _handleVisibilityChange);
     await _robotApi.putRobotPower(
         robot.robotId, RobotPowerStatusEnum.robotWaiting);
+  }
+
+  /// ポリライン取得（実装は適宜追加してください）
+  Future<List<LatLng>> getPolyline(LatLng start, LatLng end) async {
+    // ポリライン取得ロジックを実装してください
+    return [];
   }
 }
