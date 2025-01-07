@@ -145,148 +145,154 @@ class _HomeViewState extends State<HomeView> {
       body: ValueListenableBuilder(
         valueListenable: _controller.emergencyQueueNotifier,
         builder: (context, emergencyQueue, _) {
-          return Container(
-            width: width,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(
-                color: emergencyQueue == null
-                    ? Colors.green.withOpacity(0.75)
-                    : Colors.red.withOpacity(0.75),
-                width: 20,
+          return Center(
+            child: Container(
+              width: width,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(
+                  color: emergencyQueue == null
+                      ? Colors.green.withOpacity(0.75)
+                      : Colors.red.withOpacity(0.75),
+                  width: 20,
+                ),
+                borderRadius: BorderRadius.circular(16),
               ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: AspectRatio(
-              aspectRatio: _controller.videoPlayerController.value.aspectRatio,
-              child: !_controller.videoPlayerController.value.isInitialized
-                  ? const CustomProgressIndicator()
-                  : Stack(
-                      children: [
-                        VideoPlayer(_controller.videoPlayerController),
-                        Positioned(
-                          bottom: 50,
-                          right: 25,
-                          child: Container(
-                            margin: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: emergencyQueue == null
-                                  ? Colors.green.withOpacity(0.75)
-                                  : Colors.red.withOpacity(0.75),
-                              borderRadius: BorderRadius.circular(36),
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.5),
-                                  spreadRadius: 5,
-                                  blurRadius: 7,
-                                  offset: const Offset(0, 3),
+              child: AspectRatio(
+                aspectRatio:
+                    _controller.videoPlayerController.value.aspectRatio,
+                child: !_controller.videoPlayerController.value.isInitialized
+                    ? const CustomProgressIndicator()
+                    : Stack(
+                        children: [
+                          VideoPlayer(_controller.videoPlayerController),
+                          Positioned(
+                            bottom: 5,
+                            right: 25,
+                            child: Container(
+                              margin: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: emergencyQueue == null
+                                    ? Colors.green.withOpacity(0.75)
+                                    : Colors.red.withOpacity(0.75),
+                                borderRadius: BorderRadius.circular(36),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
                                 ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.all(10),
-                            child: Text(
-                              emergencyQueue == null ? '待機中' : '対応中',
-                              style: const TextStyle(
-                                fontSize: 128,
-                                color: Colors.white,
-                                letterSpacing: 30,
-                                fontFamily: 'NotoSansJP',
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.5),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(10),
+                              child: Text(
+                                emergencyQueue == null ? '待機中' : '対応中',
+                                style: TextStyle(
+                                  fontSize: width * 0.065,
+                                  color: Colors.white,
+                                  letterSpacing: 30,
+                                  fontFamily: 'NotoSansJP',
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          bottom: -100,
-                          child: Container(
-                            width: width * 0.2,
-                            margin: const EdgeInsets.all(20),
-                            alignment: Alignment.bottomLeft,
-                            child: Assets.images.logo.image(),
-                          ),
-                        ),
-                        Positioned(
-                          top: 25,
-                          right: 50,
-                          child: Container(
-                            alignment: Alignment.topRight,
-                            child: Consumer(
-                              builder: (context, ref, _) {
-                                final clockData = ref.watch(clockDataProvider);
-                                final data = clockData.getData();
-                                return CustomText(
-                                  text: DateFormat('yyyy/MM/dd HH:mm:ss')
-                                      .format(data!),
-                                  fontSize: 24,
-                                );
-                              },
+                          Positioned(
+                            bottom: -100,
+                            child: Container(
+                              width: width * 0.2,
+                              margin: const EdgeInsets.all(20),
+                              alignment: Alignment.bottomLeft,
+                              child: Assets.images.logo.image(),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          top: 25,
-                          left: 50,
-                          child: Container(
-                            alignment: Alignment.topLeft,
+                          Positioned(
+                            top: 25,
+                            right: 50,
+                            child: Container(
+                              alignment: Alignment.topRight,
+                              child: Consumer(
+                                builder: (context, ref, _) {
+                                  final clockData =
+                                      ref.watch(clockDataProvider);
+                                  final data = clockData.getData();
+                                  return CustomText(
+                                    text: DateFormat('yyyy/MM/dd HH:mm:ss')
+                                        .format(data!),
+                                    fontSize: 24,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 25,
+                            left: 50,
+                            child: Container(
+                              alignment: Alignment.topLeft,
+                              child: emergencyQueue == null
+                                  ? const SizedBox()
+                                  : _buildUserInfo(),
+                            ),
+                          ),
+                          Positioned(
+                            top: 80,
+                            right: 25,
                             child: emergencyQueue == null
                                 ? const SizedBox()
-                                : _buildUserInfo(),
+                                : ValueListenableBuilder(
+                                    valueListenable:
+                                        _controller.unicornPositionNotifier,
+                                    builder: (context, unicornPosition, _) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.black.withOpacity(0.1),
+                                              spreadRadius: 2,
+                                              blurRadius: 5,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        clipBehavior: Clip.antiAlias,
+                                        width: 400,
+                                        height: 400,
+                                        child: GoogleMapViewer(
+                                          point: _controller
+                                              .unicornInitialPosition,
+                                          destination: LatLng(
+                                              emergencyQueue.userLatitude,
+                                              emergencyQueue.userLongitude),
+                                          current: unicornPosition,
+                                          onRouteFetched: (polyline) async {
+                                            _controller
+                                                .providePolyline(polyline);
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
                           ),
-                        ),
-                        Positioned(
-                          top: 80,
-                          right: 25,
-                          child: emergencyQueue == null
-                              ? const SizedBox()
-                              : ValueListenableBuilder(
-                                  valueListenable:
-                                      _controller.unicornPositionNotifier,
-                                  builder: (context, unicornPosition, _) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(16),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.1),
-                                            spreadRadius: 2,
-                                            blurRadius: 5,
-                                            offset: const Offset(0, 3),
-                                          ),
-                                        ],
-                                      ),
-                                      clipBehavior: Clip.antiAlias,
-                                      width: 400,
-                                      height: 400,
-                                      child: GoogleMapViewer(
-                                        point:
-                                            _controller.unicornInitialPosition,
-                                        destination: LatLng(
-                                            emergencyQueue.userLatitude,
-                                            emergencyQueue.userLongitude),
-                                        current: unicornPosition,
-                                        onRouteFetched: (polyline) async {
-                                          _controller.providePolyline(polyline);
-                                        },
-                                      ),
-                                    );
-                                  },
-                                ),
-                        ),
 
-                        // CustomButton(
-                        //   text: 'ログアウト',
-                        //   onTap: () {
-                        //     controller.signOut();
-                        //     window.location.reload();
-                        //   },
-                        // ),
-                      ],
-                    ),
+                          // CustomButton(
+                          //   text: 'ログアウト',
+                          //   onTap: () {
+                          //     controller.signOut();
+                          //     window.location.reload();
+                          //   },
+                          // ),
+                        ],
+                      ),
+              ),
             ),
           );
         },
